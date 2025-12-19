@@ -1,1 +1,9 @@
-pip install yt-dlp whisper deep-translator gtts regex textwrap3 imageio-ffmpeg
+streamlit
+yt-dlp
+openai-whisper
+torch
+deep-translator
+gtts
+regex
+textwrap3
+imageio-ffmpeg

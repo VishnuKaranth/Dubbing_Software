@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from code import VideoTranslator, TranslationResult
+from translator import VideoTranslator, TranslationResult
 
 def initialize_translator():
     if 'translator' not in st.session_state:
