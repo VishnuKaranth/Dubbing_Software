@@ -132,7 +132,7 @@ class VideoTranslator:
                 raise FileNotFoundError(f"Audio file not found: {file_path}")
 
             logging.info(f"Loading Whisper model...")
-            model = =whisper.load_model("base")
+            model = whisper.load_model("base")
             
             logging.info(f"Transcribing audio: {file_path}")
             result = model.transcribe(file_path)
