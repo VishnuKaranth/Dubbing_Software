@@ -168,13 +168,5 @@ streamlit run build/app.py
 
 ---
 
-## 📄 License
-
-This project is licensed under the **MIT License** — see the `LICENSE` file for details.
-
----
-
 ## 👨‍💻 Developed By
-
-**[Your Name]**
-Final Year Project
+**Vishnu Karanth**
