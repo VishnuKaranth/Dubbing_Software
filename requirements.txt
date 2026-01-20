@@ -1,9 +1,6 @@
 streamlit
+requests
 yt-dlp
-openai-whisper
-torch
-deep-translator
-gtts
-regex
-textwrap3
-imageio-ffmpeg
+bgutil-ytdlp-pot-provider
+boto3
+python-dotenv
