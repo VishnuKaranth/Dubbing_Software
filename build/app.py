@@ -156,24 +156,46 @@ def main():
         }.get(x, x)
     )
 
-    youtube_url = st.text_input(
-        "YouTube Video URL",
-        placeholder="https://www.youtube.com/watch?v=..."
-    )
+    # Tabs for Input Source
+    tab1, tab2 = st.tabs(["📺 YouTube URL", "📁 Upload File"])
+    
+    youtube_url = None
+    uploaded_file = None
+    
+    with tab1:
+        youtube_url = st.text_input(
+            "YouTube Video URL",
+            placeholder="https://www.youtube.com/watch?v=..."
+        )
+
+    with tab2:
+        uploaded_file = st.file_uploader("Upload Video (MP4/MOV/AVI)", type=["mp4", "mov", "avi"])
 
     if st.button("🚀 Dub Video", type="primary"):
-        if not youtube_url:
-            st.warning("Please enter a YouTube URL.")
-            return
-
         status_container = st.empty()
         progress_bar = st.progress(0)
 
         job_id = f"job_{int(time.time())}"
+        video_path = None
 
-        # Step 1: Download
+        # Step 1: Get Video (Download or Save Upload)
         progress_bar.progress(10)
-        video_path = download_video_locally(youtube_url, status_container)
+        
+        if uploaded_file is not None:
+            # Handle Manual Upload
+            status_container.info("Processing uploaded file...")
+            download_dir = os.path.join(os.getcwd(), "downloads")
+            os.makedirs(download_dir, exist_ok=True)
+            video_path = os.path.join(download_dir, f"{job_id}.mp4")
+            with open(video_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+        elif youtube_url:
+            # Handle YouTube Download
+            video_path = download_video_locally(youtube_url, status_container)
+        else:
+            st.warning("Please enter a YouTube URL or Upload a File.")
+            return
+
         if not video_path:
             return
 
