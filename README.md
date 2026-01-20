@@ -1,172 +1,89 @@
-# 🎥 YouTube Video Dubbing Tool
+# 🎙️ AI Video Dubbing (Zero-Cost Serverless Architecture)
 
-A specialized automated dubbing pipeline designed to translate and dub educational or technical YouTube videos into multiple Indian languages. This tool preserves technical terminology while translating the context, making it ideal for computer science and engineering tutorials.
+A robust, serverless AI application that automatically dubs videos into multiple languages while preserving background music and speaker identity.
 
----
+![Status](https://img.shields.io/badge/Status-Production%20Ready-success)
+![Modal](https://img.shields.io/badge/Deployed%20on-Modal-black)
+![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-red)
 
-## 📖 Project Overview
+## ✨ Features
 
-This application automates the complex process of video dubbing. It takes a YouTube URL as input, transcribes the audio, translates the content while intelligently preserving technical jargon (like *stack*, *queue*, *algorithm*), generates voice-overs, and synchronizes the new audio with the original video.
+- **🗣️ Voice Cloning (XTTS)**: Clones the speaker's voice for major languages (Hindi, English, Spanish, etc.).
+- **🇮🇳 High-Quality Indian Voices**: Uses **Edge TTS** + **Gender Detection** for natural-sounding Kannada, Telugu, Malayalam, and Tamil dubbing.
+- **🎵 Music Preservation**: Separates vocals from background music (`Demucs`), dubs the vocals, and mixes them back together.
+- **⚡ GPU Accelerated**: Runs on NVIDIA A10G GPUs via Modal for fast processing (WhisperX Alignment & Diarization).
+- **🔒 Secure & Scalable**:
+  - **Rate Limiting**: Enforces 3 requests/day per user.
+  - **Auto-Cleanup**: Automatically wipes temporary files to prevent storage exhaustion.
+  - **Input Validation**: Sanitized Job IDs and URL checks.
 
----
+## 🏗️ Architecture
 
-## ✨ Key Features
+1.  **Frontend**: Streamlit (Lightweight UI).
+2.  **Backend**: Modal (Serverless GPU Functions).
+3.  **Storage**: Cloudflare R2 (Video Hosting).
+4.  **AI Pipeline**:
+    *   `Demucs` (Source Separation)
+    *   `WhisperX` (Transcription & Diarization)
+    *   `Deep Translator` (Translation)
+    *   `Coqui XTTS v2` / `Edge TTS` (Synthesis)
+    *   `FFmpeg` (Mixing)
 
-* **Automated Pipeline**
-  Seamlessly handles downloading, transcription, translation, and dubbing.
+## 🚀 Setup & Installation
 
-* **Language Support**
-  Translates content into:
+### 1. Prerequisites
+- Python 3.10+
+- [Modal](https://modal.com) Account
+- Cloudflare R2 Bucket (or S3 compatible)
 
-  * Hindi
-  * Tamil
-  * Telugu
-  * Malayalam
-  * Kannada
+### 2. Environment Variables
+Create a `.env` file in the root directory:
 
-* **Technical Term Preservation**
-  Uses a custom dictionary to ensure technical terms (e.g., *binary tree*, *hash map*) remain in English for clarity.
+```ini
+# Cloudflare R2 Credentials
+R2_ACCESS_KEY_ID=your_access_key
+R2_SECRET_ACCESS_KEY=your_secret_key
+R2_ENDPOINT_URL=https://your_account_id.r2.cloudflarestorage.com
+R2_BUCKET_NAME=your_bucket_name
 
-* **Audio-Video Synchronization**
-  Automatically adjusts the speed of the translated audio to match the original video duration.
-
-* **Interactive UI**
-  Built with Streamlit for an easy-to-use web interface.
-
-* **Downloadable Assets**
-  Users can download:
-
-  * Final dubbed video
-  * Translated transcript
-  * Generated audio file
-
----
-
-## 🛠️ Tech Stack
-
-| Component        | Technology                             |
-| ---------------- | -------------------------------------- |
-| Language         | Python 3.10                            |
-| Frontend         | Streamlit                              |
-| Transcription    | OpenAI Whisper                         |
-| Translation      | Deep Translator (Google Translate API) |
-| Text-to-Speech   | gTTS (Google Text-to-Speech)           |
-| Media Processing | FFmpeg, imageio-ffmpeg, yt-dlp         |
-
----
-
-## 📂 Project Structure
-
-```bash
-├── build/
-│   ├── app.py              # Main Streamlit application entry point
-│   ├── translator.py       # Core logic (Download → Transcribe → Translate → Sync)
-│   └── terms.py            # Dictionary of technical terms to preserve
-├── requirements.txt        # Python dependencies
-├── runtime.txt             # Runtime configuration
-└── LICENSE                 # MIT License
-```
-
----
-
-## 🚀 Installation & Setup
-
-### 1. Clone the Repository
-
-```bash
-git clone <your-repo-url>
-cd Dubbing_Software
-```
-
-### 2. Create a Virtual Environment
-
-```bash
-python -m venv venv
-```
-
-Activate it:
-
-**Windows**
-
-```bash
-venv\Scripts\activate
-```
-
-**macOS / Linux**
-
-```bash
-source venv/bin/activate
+# Modal Backend URL (After deployment)
+MODAL_BACKEND_URL=https://your-modal-app-url.modal.run
 ```
 
 ### 3. Install Dependencies
-
 ```bash
 pip install -r requirements.txt
 ```
 
-> ⚠️ This project uses `openai-whisper`, which requires **FFmpeg** to be installed on your system.
+### 4. Deploy Backend (Modal)
+```bash
+cd build
+modal deploy modal_backend.py
+```
+*Wait for the deployment to finish. Copy the `web function` URL and paste it into `.env` (MODAL_BACKEND_URL).*
 
----
-
-## 💻 Usage
-
-### Run the Application
-
+### 5. Run Frontend
 ```bash
 streamlit run build/app.py
 ```
 
-### Using the Interface
+## 📂 Project Structure
 
-1. Select your target language from the sidebar (e.g., Hindi, Tamil).
+```
+├── build/
+│   ├── modal_backend.py   # The monolithic AI backend (Modal)
+│   ├── app.py             # Streamlit frontend
+├── .env                   # Secrets (NOT committed)
+├── .gitignore             # Security rules
+├── requirements.txt       # Python dependencies
+└── README.md              # Docs
+```
 
-2. Paste a valid YouTube URL into the input field.
+## 🛡️ Security
 
-3. Click **Process Video**.
-
-4. Wait for the pipeline to finish:
-
-   * Downloading Video
-   * Transcribing Audio
-   * Translating Text
-   * Generating Speech
-   * Creating Final Video
-
-5. View & Download:
-
-   * Watch original vs translated text side-by-side
-   * Preview the dubbed video directly in the browser
-   * Download the artifacts (Video, Audio, Text) for offline use
+- **Inputs Sanitized**: `job_id` and `video_url` are validated to prevent traversal/SSRF.
+- **Secrets Managed**: Uses environment variables and Modal Secrets.
+- **Cleanup**: Ephemeral storage is wiped after every job.
 
 ---
-
-## ⚙️ How It Works (Pipeline)
-
-1. **Ingestion**
-   Uses `yt-dlp` to download the video and extract audio from the provided URL.
-
-2. **Transcription**
-   OpenAI Whisper converts the audio track into text with high accuracy.
-
-3. **Smart Translation**
-
-   * Technical keywords are identified using `terms.py`
-   * Keywords are replaced with placeholders
-   * Remaining text is translated via Google Translator
-   * Keywords are re-inserted to maintain technical accuracy
-
-4. **Voice Generation**
-   `gTTS` converts the translated text into speech in the target language.
-
-5. **Synchronization**
-
-   * Generated audio duration is compared with the original video
-   * FFmpeg dynamically adjusts audio speed to ensure perfect sync
-
-6. **Merging**
-   The new audio track is overlaid onto the original video.
-
----
-
-## 👨‍💻 Developed By
-**Vishnu Karanth**
+*Created by Vishnu Karanth*
